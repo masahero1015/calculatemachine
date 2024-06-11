@@ -13,13 +13,31 @@ const ac = document.getElementById('ac');
 const equal = document.getElementById('equal');
 
 let way = '0';
-const numarr = [];
-let pushnum = 0;
+let numarr = ['0'];
 
+//文字の大きさを変更
 const numsize = () => {
     if (result.textContent.length >= 12) {
         result.style.fontSize = '20px';
         result.style.padding = '23px 30px';
+    }
+    if (result.textContent.length >= 26) {
+        addEventListener(alert('あいうえお'));
+    }
+}
+
+//最後が四則演算マークだった場合の条件式の更新
+const updateMark = () => {
+    arrMinusOne = numarr.length - 1;
+    lastNum = numarr[arrMinusOne];
+    lastMark = lastNum === '+' || lastNum === 'ー' || lastNum === '×' || lastNum === '÷';
+}
+
+//式の表示
+const display = () => {
+    result.textContent = '';
+    for (let i = 0; i <= numarr.length - 1; i++) {
+        result.textContent += numarr[i];
     }
 }
 
@@ -27,33 +45,40 @@ const numsize = () => {
 for (let num of nums) {
     num.addEventListener('click', () => {
         numsize();
-        if (result.textContent.length >= 26) {
-            addEventListener(alert('あいうえお'));
-        } else if (result.textContent === '0' && num.textContent === '0') {
-        } else if (result.textContent === '0') {
-            result.textContent = num.textContent;
-            way = num.textContent;
-            pushnum = num.textContent;
-        } else {
-            result.textContent += num.textContent;
-            way += num.textContent;
-            pushnum += num.textContent;
+        updateMark();
+        if (lastNum.includes('%')) {
+            alert('無効な数式です');
+            return;
         }
+        if (lastMark) {
+            numarr.push(num.textContent);
+            way += num.textContent;
+        } else if (lastNum === '0') {
+            numarr[arrMinusOne] = num.textContent;
+            way = num.textContent;
+        } else {
+            numarr[arrMinusOne] += num.textContent;
+            way += num.textContent;
+        }
+        display();
     });
 }
 
-const funbtn = (s, mark) => {
-    s.addEventListener('click', () => {
+
+
+
+//四則演算
+const funbtn = (sym, mark) => {
+    sym.addEventListener('click', () => {
+        updateMark();
         numsize();
-        if (['+', 'ー', '×', '÷'].includes(result.textContent[result.textContent.length - 1])) {
+        if (lastMark) {
             alert('無効な数式です');
         } else {
             way += mark;
-            result.textContent += s.textContent;
-            numarr.push(pushnum);
-            numarr = '';
-            console.log(numarr);
+            numarr.push(sym.textContent);
         }
+        display();
     });
 }
 
@@ -64,39 +89,50 @@ funbtn(divide, '/');
 
 percent.addEventListener('click', () => {
     numsize();
-    if (result.textContent === 0) return;
+    updateMark();
+    if (numarr.length === 1 && numarr[0] === '0') return;
     way += '*(1/100)';
-    result.textContent += percent.textContent;
-})
+    lastNum += '%';
+    display();
+});
+
 
 plusminus.addEventListener('click', () => {
     if (result.textContent === '0') return;
-    // if (result.textContent[0] === '-') {
-    //     result.textContent = result.textContent.slice(1, result.textContent.length);
-    // } else {
-    //     result.textContent = '-' + result.textContent;
-    // }
     way += '*(-1)';
-    result.textContent += '×(-1)';
+    if (numarr[arrMinusOne].startsWith('(-') && numarr[arrMinusOne].endsWith(')')) {
+        numarr[arrMinusOne] = numarr[arrMinusOne].slice(2, -1);
+    } else {
+        numarr[arrMinusOne] = `(-${numarr[arrMinusOne]})`;
+    }
+    display();
 });
 
 point.addEventListener('click', () => {
-    if(result.textContent.includes('.')) {
+    updateMark();
+    if (lastNum.includes('.') || lastMark) {
         alert('無効な数式です');
     } else {
         way += '.';
-        result.textContent += '.';
+        numarr[arrMinusOne] += '.';
     }
+    display();
 })
 
 c.addEventListener('click', () => {
-    if (result.textContent.length === 1) {
+    if (numarr.length === 1 && numarr[0] === '0') return;
+    if (numarr.length === 1 && numarr[0].length === 1) {
         way = '0';
-        result.textContent = '0';
+        numarr.length = 1;
+        numarr[0] = '0'
     } else {
         way = way.slice(0, -1);
-        result.textContent = result.textContent.slice(0, -1);
+        numarr[arrMinusOne] = numarr[arrMinusOne].slice(0, -1);
     }
+    if (numarr[arrMinusOne] === '') {
+        numarr.length--;
+    }
+    display();
 });
 
 
@@ -105,10 +141,16 @@ ac.addEventListener('click', () => {
     result.style.fontSize = '40px';
     result.style.padding = '10px 30px';
     way = '0';
+    numarr = ['0'];
 });
 
 
 equal.addEventListener('click', () => {
+    updateMark();
+    if(lastMark) {
+        alert('無効な数式です');
+        return;
+    }
     result.textContent = String(eval(way));
     way = String(eval(way));
 });
