@@ -15,25 +15,35 @@ const equal = document.getElementById('equal');
 let way = '0';
 let numarr = ['0'];
 
-//文字の大きさを変更
+// 文字の大きさを変更
 const numsize = () => {
+    if (result.textContent.length < 12) {
+        result.style.fontSize = '40px';
+        result.style.padding = '10px 30px';
+    }
     if (result.textContent.length >= 12) {
         result.style.fontSize = '20px';
         result.style.padding = '23px 30px';
     }
-    if (result.textContent.length >= 26) {
-        addEventListener(alert('あいうえお'));
+}
+
+// 式の最大の長さ
+const numMax = () => {
+    if (result.textContent.length >= 25) {
+        addEventListener(alert('これ以上は計算できません'));
+        return;
     }
 }
 
-//最後が四則演算マークだった場合の条件式の更新
+
+// 最後が四則演算マークだった場合の条件式の更新
 const updateMark = () => {
     arrMinusOne = numarr.length - 1;
     lastNum = numarr[arrMinusOne];
     lastMark = lastNum === '+' || lastNum === 'ー' || lastNum === '×' || lastNum === '÷';
 }
 
-//式の表示
+// 式の表示
 const display = () => {
     result.textContent = '';
     for (let i = 0; i <= numarr.length - 1; i++) {
@@ -44,7 +54,7 @@ const display = () => {
 // 数字のボタンを押したとき
 for (let num of nums) {
     num.addEventListener('click', () => {
-        numsize();
+        numMax();
         updateMark();
         if (lastNum.includes('%')) {
             alert('無効な数式です');
@@ -61,17 +71,14 @@ for (let num of nums) {
             way += num.textContent;
         }
         display();
+        numsize();
     });
 }
 
-
-
-
-//四則演算
+// 四則演算のボタンを押したとき
 const funbtn = (sym, mark) => {
     sym.addEventListener('click', () => {
         updateMark();
-        numsize();
         if (lastMark) {
             alert('無効な数式です');
         } else {
@@ -79,6 +86,7 @@ const funbtn = (sym, mark) => {
             numarr.push(sym.textContent);
         }
         display();
+        numsize();
     });
 }
 
@@ -87,16 +95,17 @@ funbtn(minus, '-');
 funbtn(multip, '*');
 funbtn(divide, '/');
 
+// %のボタンを押したとき
 percent.addEventListener('click', () => {
-    numsize();
     updateMark();
     if (numarr.length === 1 && numarr[0] === '0') return;
     way += '*(1/100)';
     lastNum += '%';
     display();
+    numsize();
 });
 
-
+// ±のボタンを押したとき
 plusminus.addEventListener('click', () => {
     if (result.textContent === '0') return;
     way += '*(-1)';
@@ -106,8 +115,10 @@ plusminus.addEventListener('click', () => {
         numarr[arrMinusOne] = `(-${numarr[arrMinusOne]})`;
     }
     display();
+    numsize();
 });
 
+// 小数点のボタンを押したとき
 point.addEventListener('click', () => {
     updateMark();
     if (lastNum.includes('.') || lastMark) {
@@ -117,9 +128,12 @@ point.addEventListener('click', () => {
         numarr[arrMinusOne] += '.';
     }
     display();
+    numsize();
 })
 
+// cのボタンを押したとき
 c.addEventListener('click', () => {
+    updateMark();
     if (numarr.length === 1 && numarr[0] === '0') return;
     if (numarr.length === 1 && numarr[0].length === 1) {
         way = '0';
@@ -133,24 +147,27 @@ c.addEventListener('click', () => {
         numarr.length--;
     }
     display();
+    numsize();
 });
 
-
+// acのボタンを押したとき
 ac.addEventListener('click', () => {
     result.textContent = '0';
-    result.style.fontSize = '40px';
-    result.style.padding = '10px 30px';
     way = '0';
     numarr = ['0'];
+    numsize();
 });
 
-
+// =のぼたんを押したとき
 equal.addEventListener('click', () => {
     updateMark();
-    if(lastMark) {
+    if (lastMark) {
         alert('無効な数式です');
         return;
     }
     result.textContent = String(eval(way));
     way = String(eval(way));
+    numarr.length = 1;
+    numarr[0] = result.textContent;
+    numsize();
 });
